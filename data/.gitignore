@@ -1,0 +1,7 @@
+# Large data files tracked by DVC — do not commit to git
+/return_model.pkl
+/prophet_model.pkl
+/sales_forecast.csv
+/drift_report.json
+/raw/Online Retail.xlsx
+/raw/processed_returns.csv

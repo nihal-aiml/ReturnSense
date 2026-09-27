@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ReturnSense — Return-Aware Net Demand Forecasting System for E-commerce. Predict not just what sells, but what stays sold.">
+    <title>ReturnSense | Return-Aware Net Demand Forecasting</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================================================================== -->
+    <!-- HEADER / HERO SECTION                                              -->
+    <!-- ================================================================== -->
+    <header class="hero" id="hero">
+        <div class="hero-bg-glow"></div>
+        <div class="hero-content">
+            <div class="logo" id="logo">
+                <span class="logo-icon">📦</span>
+                <span class="logo-text">ReturnSense</span>
+            </div>
+            <h1 class="hero-tagline">Predict not just what sells — but what <span class="gradient-text">stays sold</span></h1>
+            <p class="hero-formula">
+                <span class="formula-box">
+                    Net Demand = Predicted Sales × (1 − Return Probability)
+                </span>
+            </p>
+            <p class="hero-subtitle">Upload your e-commerce data. Get instant return risk predictions. Save on overstock.</p>
+        </div>
+    </header>
+
+    <!-- ================================================================== -->
+    <!-- UPLOAD SECTION                                                     -->
+    <!-- ================================================================== -->
+    <section class="section upload-section" id="upload-section">
+        <div class="container">
+            <h2 class="section-title">Upload Your Data</h2>
+            <p class="section-desc">Drag & drop your Online Retail CSV or Excel file. We handle everything automatically.</p>
+
+            <div class="upload-area" id="upload-area">
+                <div class="upload-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="url(#uploadGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <defs>
+                            <linearGradient id="uploadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#6c63ff"/>
+                                <stop offset="100%" style="stop-color:#e040fb"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                </div>
+                <p class="upload-text">Drag & drop your file here</p>
+                <p class="upload-subtext">or click to browse — accepts <strong>.csv</strong> and <strong>.xlsx</strong></p>
+                <input type="file" id="file-input" accept=".csv,.xlsx,.xls" hidden>
+                <div class="file-name-display" id="file-name-display" style="display:none;">
+                    <span class="file-icon">📄</span>
+                    <span id="selected-file-name"></span>
+                    <button class="file-remove-btn" id="file-remove-btn" title="Remove file">✕</button>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="analyze-btn" disabled>
+                <span class="btn-text">Analyze Now</span>
+                <span class="btn-arrow">→</span>
+            </button>
+
+            <!-- Loading Spinner -->
+            <div class="loader-container" id="loader" style="display:none;">
+                <div class="loader-spinner"></div>
+                <p class="loader-text">Analyzing your data with LightGBM...</p>
+            </div>
+
+            <!-- Error Display -->
+            <div class="error-banner" id="error-banner" style="display:none;">
+                <span class="error-icon">⚠️</span>
+                <span id="error-message"></span>
+                <button class="error-close" id="error-close">✕</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================== -->
+    <!-- RESULTS WRAPPER (hidden until data loads)                          -->
+    <!-- ================================================================== -->
+    <div id="results-wrapper" style="display:none;">
+
+        <!-- ============================================================== -->
+        <!-- DATA QUALITY + SUMMARY CARDS                                   -->
+        <!-- ============================================================== -->
+        <section class="section" id="summary-section">
+            <div class="container">
+                <h2 class="section-title">Analysis Summary</h2>
+
+                <!-- Data Quality Indicator -->
+                <div class="data-quality-bar" id="data-quality-bar" style="display:none;">
+                    <div class="dq-indicator" id="dq-indicator">
+                        <span class="dq-icon" id="dq-icon">✓</span>
+                        <span class="dq-status" id="dq-status">Data Quality: PASS</span>
+                        <span class="dq-detail" id="dq-detail">10/10 checks passed</span>
+                    </div>
+                    <button class="dq-toggle-btn" id="dq-toggle-btn" title="View details">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                </div>
+                <!-- Expandable validation details -->
+                <div class="dq-details-panel" id="dq-details-panel" style="display:none;">
+                    <div class="dq-checks-grid" id="dq-checks-grid"></div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card card-animate" id="card-total">
+                        <div class="card-icon">📊</div>
+                        <div class="card-value" id="val-total">0</div>
+                        <div class="card-label">Total Products Analyzed</div>
+                    </div>
+                    <div class="card card-animate" id="card-high-risk">
+                        <div class="card-icon">🔴</div>
+                        <div class="card-value" id="val-high-risk">0</div>
+                        <div class="card-label">High Return Risk SKUs</div>
+                    </div>
+                    <div class="card card-animate" id="card-saved">
+                        <div class="card-icon">💰</div>
+                        <div class="card-value" id="val-saved">0</div>
+                        <div class="card-label">Units Saved from Overstock</div>
+                    </div>
+                    <div class="card card-animate" id="card-avg-prob">
+                        <div class="card-icon">📈</div>
+                        <div class="card-value" id="val-avg-prob">0%</div>
+                        <div class="card-label">Avg Return Probability</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- CHARTS ROW: Risk Distribution + SHAP Importance                -->
+        <!-- ============================================================== -->
+        <section class="section" id="charts-section">
+            <div class="container">
+                <div class="charts-grid">
+                    <!-- Risk Distribution Doughnut -->
+                    <div class="chart-card">
+                        <h3 class="chart-title">Risk Distribution</h3>
+                        <div class="chart-wrap">
+                            <canvas id="risk-chart"></canvas>
+                        </div>
+                    </div>
+                    <!-- SHAP Feature Importance -->
+                    <div class="chart-card">
+                        <h3 class="chart-title">Feature Importance (SHAP)</h3>
+                        <div class="chart-wrap">
+                            <canvas id="shap-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- SALES FORECAST (Prophet)                                       -->
+        <!-- ============================================================== -->
+        <section class="section" id="forecast-section">
+            <div class="container">
+                <h2 class="section-title">Sales Forecast</h2>
+                <p class="section-desc">30-day revenue forecast powered by Prophet — historical trends + future predictions with confidence intervals.</p>
+
+                <div class="forecast-summary-cards" id="forecast-summary" style="display:none;">
+                    <div class="forecast-stat">
+                        <div class="forecast-stat-label">Total Predicted Revenue</div>
+                        <div class="forecast-stat-value" id="forecast-total-revenue">$0</div>
+                    </div>
+                    <div class="forecast-stat">
+                        <div class="forecast-stat-label">Avg Daily Revenue</div>
+                        <div class="forecast-stat-value" id="forecast-avg-daily">$0</div>
+                    </div>
+                    <div class="forecast-stat">
+                        <div class="forecast-stat-label">Forecast Period</div>
+                        <div class="forecast-stat-value" id="forecast-period">30 days</div>
+                    </div>
+                </div>
+
+                <div class="chart-card forecast-chart-card">
+                    <div class="forecast-chart-wrap">
+                        <canvas id="forecast-chart"></canvas>
+                    </div>
+                    <div class="forecast-no-data" id="forecast-no-data" style="display:none;">
+                        <div class="forecast-no-data-icon">📉</div>
+                        <p>No forecast data available yet.</p>
+                        <p class="forecast-no-data-sub">Run <code>python src/sales_forecast.py</code> to generate a 30-day forecast.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- PRODUCTS TABLE                                                 -->
+        <!-- ============================================================== -->
+        <section class="section" id="table-section">
+            <div class="container">
+                <h2 class="section-title">Product Predictions</h2>
+                <div class="table-controls">
+                    <div class="search-box">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="table-search" placeholder="Search products..." class="search-input">
+                    </div>
+                    <div class="sort-controls">
+                        <label class="sort-label">Sort by:</label>
+                        <select id="sort-select" class="sort-select">
+                            <option value="return_probability-desc">Return Prob (High → Low)</option>
+                            <option value="return_probability-asc">Return Prob (Low → High)</option>
+                            <option value="gross_sales-desc">Gross Sales (High → Low)</option>
+                            <option value="gross_sales-asc">Gross Sales (Low → High)</option>
+                            <option value="units_saved-desc">Units Saved (High → Low)</option>
+                            <option value="net_demand-desc">Net Demand (High → Low)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="products-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Stock Code</th>
+                                <th>Gross Sales</th>
+                                <th>Return Probability</th>
+                                <th>Net Demand</th>
+                                <th>Units Saved</th>
+                                <th>Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </section>
+
+        <!-- ============================================================== -->
+        <!-- WHAT-IF SIMULATOR                                              -->
+        <!-- ============================================================== -->
+        <section class="section" id="whatif-section">
+            <div class="container">
+                <h2 class="section-title">What-If Simulator</h2>
+                <p class="section-desc">Select a product to see how reducing return rates impacts net demand.</p>
+
+                <div class="whatif-controls">
+                    <label class="whatif-label" for="whatif-select">Select Product:</label>
+                    <select id="whatif-select" class="whatif-select">
+                        <option value="">— Choose a product —</option>
+                    </select>
+                </div>
+
+                <div class="whatif-results" id="whatif-results" style="display:none;">
+                    <div class="whatif-current" id="whatif-current"></div>
+                    <div class="whatif-table-wrap">
+                        <table class="data-table whatif-table">
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Return Probability</th>
+                                    <th>Net Demand</th>
+                                    <th>Units Saved</th>
+                                    <th>Improvement</th>
+                                </tr>
+                            </thead>
+                            <tbody id="whatif-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- FOOTER                                                             -->
+    <!-- ================================================================== -->
+    <footer class="footer" id="footer">
+        <div class="container">
+            <p class="footer-powered">Powered by <strong>LightGBM</strong> + <strong>Prophet</strong> + <strong>MLOps</strong></p>
+            <div class="footer-badges">
+                <span class="sdg-badge sdg-9" title="SDG 9: Industry, Innovation and Infrastructure">🏭 SDG 9</span>
+                <span class="sdg-badge sdg-12" title="SDG 12: Responsible Consumption and Production">♻️ SDG 12</span>
+            </div>
+            <p class="footer-copy">&copy; 2026 ReturnSense — Return-Aware Net Demand Forecasting</p>
+        </div>
+    </footer>
+
+    <!-- App JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

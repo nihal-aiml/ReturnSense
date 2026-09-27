@@ -1,0 +1,14 @@
+{
+  "name": "returnsense",
+  "version": "1.0.0",
+  "description": "ReturnSense — Return-Aware Net Demand Forecasting System",
+  "private": true,
+  "scripts": {
+    "frontend": "node server.js",
+    "api": "uvicorn api.app:app --reload --port 8000",
+    "dev": "node scripts/dev.js",
+    "test": "python -m pytest tests/ -v --tb=short"
+  },
+  "keywords": ["mlops", "forecasting", "returns", "ecommerce", "lightgbm"],
+  "license": "MIT"
+}

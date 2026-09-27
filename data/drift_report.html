@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>ReturnSense - Drift Monitoring Report</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8f9fa; color: #333; margin: 0; padding: 40px; }
+                .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                h1 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-top: 0; }
+                .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; background: #f1f5f9; padding: 15px; border-radius: 6px; }
+                .meta-item { font-size: 14px; }
+                .meta-label { color: #64748b; font-weight: 600; display: block; }
+                .meta-value { font-size: 16px; font-weight: bold; color: #0f172a; }
+                .alert { padding: 15px; border-radius: 6px; font-weight: bold; margin-bottom: 25px; border: 1px solid transparent; }
+                .alert-success { background-color: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+                .alert-danger { background-color: #f8d7da; color: #842029; border-color: #f5c2c7; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+                th { background-color: #f8f9fa; color: #475569; font-weight: 600; }
+                tr:hover { background-color: #f8fafc; }
+                .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: inline-block; }
+                .status-badge.ok { background-color: #d1e7dd; color: #0f5132; }
+                .status-badge.drifted { background-color: #f8d7da; color: #842029; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📊 ReturnSense Drift Monitoring Report</h1>
+                
+                <div class="alert alert-danger">⚠️ ALERT: Dataset drift detected! Model retrain suggested.</div>
+                
+                <div class="meta-grid">
+                    <div class="meta-item"><span class="meta-label">Method</span><span class="meta-value">scipy_ks_test_fallback</span></div>
+                    <div class="meta-item"><span class="meta-label">Features Checked</span><span class="meta-value">7</span></div>
+                    <div class="meta-item"><span class="meta-label">Features Drifted</span><span class="meta-value">7</span></div>
+                    <div class="meta-item"><span class="meta-label">Reference / Current Size</span><span class="meta-value">198942 / 198942</span></div>
+                </div>
+
+                <h3>Feature-Level Analysis</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature Name</th>
+                            <th>Status</th>
+                            <th>Drift Score (p-value)</th>
+                            <th>Statistical Test</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+            <tr>
+                <td><strong>UnitPrice</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>price_vs_category_avg</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>customer_past_return_rate</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>customer_order_count</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>day_of_week</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>month</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+            <tr>
+                <td><strong>Quantity</strong></td>
+                <td><span class="status-badge drifted">DRIFTED</span></td>
+                <td><code>0.0</code></td>
+                <td>ks_2samp</td>
+            </tr>
+            
+                    </tbody>
+                </table>
+            </div>
+        </body>
+        </html>
+        

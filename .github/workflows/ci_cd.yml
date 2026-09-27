@@ -1,0 +1,95 @@
+name: ReturnSense CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # 1. NEW: Listens for the drift detection webhook!
+  repository_dispatch:
+    types: [data-drift-detected]
+
+jobs:
+  test-train-deploy:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.10"] # Updated to match standard modern ML stacks
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install httpx
+
+      # 2. NEW: Pull your raw data using DVC before trying to run preprocessing
+      - name: Pull data via DVC
+        run: dvc pull
+        continue-on-error: true # Skips if you haven't fully set up DVC remote yet
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short -x
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Run Preprocessing (Feature Engineering)
+        run: python src/preprocessing.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Train model
+        if: success()
+        run: |
+          echo "Starting model training..."
+          python src/train.py
+          echo "✓ Model training complete."
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      # 3. NEW: If triggered by drift, commit the new model back to the repository
+      - name: Commit and push new model
+        if: github.event_type == 'data-drift-detected'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/return_model.pkl data/model_metrics.json data/shap_importance.json
+          git commit -m "Auto-retrain: Update model due to data drift" || echo "No changes to commit"
+          git push
+
+      - name: Upload model artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: |
+            data/return_model.pkl
+            data/model_metrics.json
+            data/shap_importance.json
+          if-no-files-found: ignore
+
+      # 4. NEW: Deploy your API
+      - name: Deploy to Production
+        if: success()
+        run: |
+          echo "Model successfully trained and tested."
+          echo "TODO: Add your deployment script here!"
+          # Example: ssh into your server and run 'docker compose restart api'
+          # Example: render or heroku CLI deploy commands
